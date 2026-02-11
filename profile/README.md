@@ -69,17 +69,17 @@ fun contentPipeline() = workflow("ContentPipeline") {
 
 ## Architecture at a Glance
 
-```
-  Developer (local)                                    Hensu Runtime              External
- ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌─────────────────────┐    ┌──────────────┐
- │ Kotlin   │───>│  hensu   │───>│   JSON   │───>│  Hensu Server       │<──>│ LLMs (Claude │
- │ DSL      │    │  build   │    │   Def.   │    │  (GraalVM Native)   │    │ GPT, Gemini) │
- └──────────┘    └──────────┘    └──────────┘    │                     │    └──────────────┘
-                                   hensu push    │  Core Engine        │    ┌──────────────┐
-                                                 │  ├ State Manager    │<──>│ MCP Tool     │
-                                                 │  ├ Rubric Evaluator │    │ Servers      │
-                                                 │  └ Consensus Engine │    └──────────────┘
-                                                 └─────────────────────┘
+```text
+ Developer (local)                                               Hensu Runtime              External
+ +----------+    +----------+    +----------+    +----------+    +---------------------+    +--------------+
+ | Kotlin   |    |  hensu   |    |   JSON   |    |  hensu   |    |  Hensu Server       |    | LLMs (Claude |
+ | DSL      |--->|  build   |--->|   Def.   |--->|  push    |--->|  (GraalVM Native)   |<-->| GPT, Gemini) |
+ +----------+    +----------+    +----------+    +----------+    |                     |    +--------------+
+                                                                 |  Core Engine        |    +--------------+
+                                                                 |  +- State Manager   |<-->| MCP Tool     |
+                                                                 |  +- Rubric Evaluator|    | Servers      |
+                                                                 |  +- Consensus Engine|    +--------------+
+                                                                 +---------------------+
 ```
 
 **The Hensu Stack:**
