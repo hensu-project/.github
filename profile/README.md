@@ -2,7 +2,7 @@
 
 # Hensu
 
-### Open-Source Infrastructure for AI Agent Workflows
+### The orchestration engine for declarative AI workflows.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Java](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)](https://jdk.java.net/)
@@ -17,127 +17,133 @@ Self-hosted. Developer-friendly. Zero lock-in.
 
 ---
 
-**Hensu** is a modular infrastructure stack designed to solve the "Agent-in-Production" problem. We strictly separate
-the **Definition of Intelligence** from its **Execution**, providing a toolchain that feels like **Terraform for AI
-Agents**.
-
-## Core Philosophy: Separation of Intent
-
-Hensu is built on the principle of **Describe, don't implement.** Rather than requiring imperative "wiring" to integrate
-a framework's stack, Hensu utilizes a type-safe Kotlin DSL to decouple workflow logic from the underlying runtime.
-
-* **Declarative Orchestration:** Define complex multi-agent interactions without managing internal state transitions or
-  boilerplate integration code.
-* **Type-Safety by Design:** Catch orchestration errors at compile-time via the Kotlin DSL.
-* **Low-Friction Integration:** No need to hard-code against internal APIs; the DSL serves as the source of truth for
-  agent behavior.
-
-**Example: Defining a Workflow**
+Shipping multi-agent systems today means scattering orchestration logic across application code, making it impossible to
+version, test, or deploy agent behavior independently. **Hensu** treats workflows as **compilable artifacts** — authored
+in a type-safe Kotlin DSL, compiled to portable JSON, and executed on a stateless native-image server that never runs
+user code. Think **Terraform for AI Agents**.
 
 ```kotlin
-// Describe, don't implement.
-fun myWorkflow() = workflow("weather-forecast") {
+fun contentPipeline() = workflow("ContentPipeline") {
     agents {
-        agent("meteorologist") {
-            role = "A weather assistant"
-            model = "gemini-3-flash"
-            tools = listOf("geo-locator")
-        }
+        agent("writer") { role = "Content Writer"; model = Models.CLAUDE_SONNET_4_5 }
+        agent("reviewer") { role = "Content Reviewer"; model = Models.GPT_4O }
     }
 
     graph {
-        start at "generate"
+        start at "write"
 
-        node("generate") {
-            agent = "meteorologist"
-            prompt = """
-                Generate a short message about the weather today.
-                Keep it to one sentence.
-            """.trimIndent()
-            onSuccess goto "notify"
+        node("write") {
+            agent = "writer"
+            prompt = "Write an article about {topic}"
+            onSuccess goto "review"
         }
 
-        action("notify") {
-            send("slack")
+        parallel("review") {
+            branch("quality") { agent = "reviewer"; prompt = "Review for quality: {write}" }
+            branch("accuracy") { agent = "reviewer"; prompt = "Review for accuracy: {write}" }
 
-            onSuccess goto "exit"
-            onFailure retry 2 otherwise "exit"
+            consensus { strategy = ConsensusStrategy.MAJORITY_VOTE }
+            onConsensus goto "done"
+            onNoConsensus goto "write"   // self-correcting loop
         }
 
-        end("exit")
+        end("done", ExitStatus.SUCCESS)
     }
 }
 ```
 
 ---
 
-## Technical Architecture
+## Why Hensu
 
-Hensu is designed for performance and extensibility, utilizing a modern JVM stack to bridge declarative definitions with
-scalable execution.
-
-**High-Level Components**
-
-- DSL Layer (Kotlin): A type-safe syntax for defining agents, roles, and communication protocols.
-- CLI: The developer interface for compiling, testing, and managing workflows on remote servers.
-- Core Engine: A pure Java execution runtime with zero external dependencies.
-- Server: A GraalVM-native, multi-tenant environment featuring an MCP-first (Model Context Protocol) architecture.
-
-**Architectural Philosophy**
-
-The system is built to be entirely stateless and reactive. By decoupling execution logic from the state, Hensu
-ensures horizontal scalability, near-instant startup times via GraalVM, and native interoperability with the evolving AI
-tool ecosystem.
-
-Hensu is built on a **feature-driven architecture** ensuring the foundation is natively built for high-level
-orchestration, not just basic tasks.
-
-**Hensu CLI: Developer Experience**
-
-The CLI manages the entire lifecycle of a workflow, ensuring that what you describe is exactly what the server executes.
-
-- Compile: Translates .kt workflow definitions into portable JSON artifacts.
-- Local Execution: Runs and validates workflows locally with full agent support before deployment.
-- Build & Push: Compiles and uploads workflow artifacts directly to the remote server.
-- Server Management: A complete interface to push, pull, list, or delete workflows on remote instances.
+| Problem                                              | Hensu's Answer                                                                                          |
+|:-----------------------------------------------------|:--------------------------------------------------------------------------------------------------------|
+| Workflow logic is buried in application code         | **Declarative DSL** compiles to versioned JSON artifacts — diff, review, and deploy like infrastructure |
+| No way to test agent orchestration without API calls | **Stub agents** and a pure-Java core enable full offline testing                                        |
+| Multi-agent coordination requires custom glue code   | **Parallel branches**, **consensus strategies**, and **sub-workflows** are first-class primitives       |
+| Quality is checked after the fact                    | **Rubric evaluation** gates node transitions — fail fast, not at the end                                |
+| Production deployments need human oversight          | **Checkpoints** pause execution for manual approval before high-stakes transitions                      |
+| Vendor lock-in to a specific LLM provider            | **Model-agnostic agents** — use Claude, GPT, Gemini, or any provider in the same workflow               |
 
 ---
 
-## Project Status: Stabilization & Validation
-
-Hensu is currently in its Alpha (Feature-Complete) phase. The architecture is stable and designed to be
-production-ready; our current focus is on final verification and hardening.
-
-**Current State:**
-
-- Feature Maturity: The core execution logic, DSL, and CLI are fully implemented. Server is prototyped.
-- Verification: Core logic is currently ~70% verified through initial testing.
-- Stabilization: We are currently focused on comprehensive integration testing to ensure the thoughtfully designed
-  architecture handles all edge cases.
-
-**Roadmap to Production**
+## Architecture at a Glance
 
 ```
-[x] Feature-Driven Architecture Design
-[x] Core DSL Syntax Definition
-[x] Engine Implementation
-[x] CLI Implementation
-[x] Server Prototype
-[ ] (Current) Full Integration Test Suite
-[ ] Persistence Layer (Database Integration)
-[ ] Production Security Hardening
-[ ] Performance Tuning & Scaling Docs
+  Developer (local)                                    Hensu Runtime              External
+ ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌─────────────────────┐    ┌──────────────┐
+ │ Kotlin   │───>│  hensu   │───>│   JSON   │───>│  Hensu Server       │<──>│ LLMs (Claude │
+ │ DSL      │    │  build   │    │   Def.   │    │  (GraalVM Native)   │    │ GPT, Gemini) │
+ └──────────┘    └──────────┘    └──────────┘    │                     │    └──────────────┘
+                                   hensu push    │  Core Engine        │    ┌──────────────┐
+                                                 │  ├ State Manager    │<──>│ MCP Tool     │
+                                                 │  ├ Rubric Evaluator │    │ Servers      │
+                                                 │  └ Consensus Engine │    └──────────────┘
+                                                 └─────────────────────┘
 ```
 
-## Getting Started with Hensu
+**The Hensu Stack:**
 
-* **[Hensu Monorepo](https://github.com/hensu-project/hensu)**: The core infrastructure containing the Engine, Server,
-  and CLI.
-* **[DSL Reference](https://github.com/hensu-project/hensu/tree/main/docs/dsl-reference.md)**: Documentation on building
-  agentic workflows.
-* **[Community & Contributing](../CONTRIBUTING.md)**: Join us in building the
-  future of agentic infrastructure.
+| Module                                                                                          | Role                                                                                              |
+|:------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------|
+| **[hensu-dsl](https://github.com/hensu-project/hensu/tree/main/hensu-dsl)**                     | Type-safe Kotlin DSL that compiles workflows into portable JSON definitions                       |
+| **[hensu-core](https://github.com/hensu-project/hensu/tree/main/hensu-core)**                   | Zero-dependency Java execution engine — state transitions, rubric evaluation, agent orchestration |
+| **[hensu-server](https://github.com/hensu-project/hensu/tree/main/hensu-server)**               | Stateless multi-tenant server with MCP Split-Pipe transport for secure remote tool execution      |
+| **[hensu-serialization](https://github.com/hensu-project/hensu/tree/main/hensu-serialization)** | Jackson mixins that bridge in-memory domain objects and their JSON wire format                    |
+| **[hensu-cli](https://github.com/hensu-project/hensu/tree/main/hensu-cli)**                     | Developer CLI — `build`, `push`, `pull`, `list`, `delete` workflows on remote servers             |
+
+---
+
+## Security Model
+
+The server is a **pure orchestrator** — it never executes user-supplied code.
+
+- **No Local Execution.** No shell, no `eval`, no script runner. All side effects route through MCP to tenant clients.
+- **Tenant Isolation.** Every execution runs inside a Java `ScopedValue` boundary. No data leaks between concurrent
+  workflows.
+- **No Inbound Ports.** The Split-Pipe transport means tenant clients connect *outbound* via SSE. No firewall rules
+  required.
+- **Native Binary.** GraalVM native image eliminates classpath scanning, reflection, and dynamic class loading attack
+  surfaces.
+
+---
+
+## Project Status
+
+Hensu is in **Alpha**. The core architecture is stable and the engine is feature-complete. Current focus is on
+comprehensive integration testing and persistence layer hardening.
+
+- [x] Core engine implementation (state machine, rubric evaluation, consensus, sub-workflows)
+- [x] Type-safe Kotlin DSL with compile-time validation
+- [x] CLI for workflow lifecycle management
+- [x] Server prototype with MCP Split-Pipe transport
+- [x] Integration test suite (standard nodes, parallel, planning, review, rubric, pause/resume)
+- [ ] Persistence layer (database integration)
+- [ ] Production security hardening
+- [ ] Performance benchmarks and scaling documentation
+
+---
+
+## Get Started
+
+```shell
+git clone https://github.com/hensu-project/hensu.git && cd hensu
+./gradlew build -x test
+java -jar hensu-server/build/quarkus-app/quarkus-run.jar
+```
+
+**Resources:**
+
+- **[Hensu Monorepo](https://github.com/hensu-project/hensu)** — Engine, Server, DSL, CLI, and Serialization
+- **[DSL Reference](https://github.com/hensu-project/hensu/blob/master/docs/dsl-reference.md)** — Complete guide to
+  building agentic workflows
+- **[Architecture](https://github.com/hensu-project/hensu/blob/master/docs/unified-architecture.md)** — Design
+  decisions, module structure, execution model, and security architecture
+
+---
 
 <div align="center">
-Built with Java 25 • Kotlin • Quarkus • GraalVM • MCP
+
+Built with Java 25 · Kotlin · Quarkus · GraalVM Native Image · MCP Protocol
+
 </div>
