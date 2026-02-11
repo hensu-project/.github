@@ -69,17 +69,17 @@ fun contentPipeline() = workflow("ContentPipeline") {
 
 ## Architecture at a Glance
 
-```text
- Developer (local)                                               Hensu Runtime              External
- +----------+    +----------+    +----------+    +----------+    +---------------------+    +--------------+
- | Kotlin   |    |  hensu   |    |   JSON   |    |  hensu   |    |  Hensu Server       |    | LLMs (Claude |
- | DSL      |--->|  build   |--->|   Def.   |--->|  push    |--->|  (GraalVM Native)   |<-->| GPT, Gemini) |
- +----------+    +----------+    +----------+    +----------+    |                     |    +--------------+
-                                                                 |  Core Engine        |    +--------------+
-                                                                 |  +- State Manager   |<-->| MCP Tool     |
-                                                                 |  +- Rubric Evaluator|    | Servers      |
-                                                                 |  +- Consensus Engine|    +--------------+
-                                                                 +---------------------+
+```
+ Developer (local)                                               Hensu Runtime               External
+ +——————————+    +——————————+    +——————————+    +——————————+    +——————————————————————+    +——————————————+
+ │ Kotlin   │    │  hensu   │    │   JSON   │    │  hensu   │    │  Hensu Server        │    │ LLMs (Claude │
+ │ DSL      │———>│  build   │———>│   Def.   │———>│  push    │———>│  (GraalVM Native)    │<——>│ GPT, Gemini) │
+ +——————————+    +——————————+    +——————————+    +——————————+    │                      │    +——————————————+
+                                                                 │  Core Engine         │    +——————————————+
+                                                                 │  +— State Manager    │<——>│ MCP Tool     │
+                                                                 │  +— Rubric Evaluator │    │ Servers      │
+                                                                 │  +— Consensus Engine │    +——————————————+
+                                                                 +——————————————————————+
 ```
 
 **The Hensu Stack:**
