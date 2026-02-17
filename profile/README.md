@@ -6,7 +6,8 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Java](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)](https://jdk.java.net/)
-[![Build](https://img.shields.io/badge/Build-Native%20Image-success)](https://graalvm.org/)
+[![CI](https://github.com/hensu-project/hensu/actions/workflows/ci.yml/badge.svg)](https://github.com/hensu-project/hensu/actions/workflows/ci.yml)
+[![Native Image](https://github.com/hensu-project/hensu/actions/workflows/native.yml/badge.svg)](https://github.com/hensu-project/hensu/actions/workflows/native.yml)
 [![Protocol](https://img.shields.io/badge/Protocol-MCP-green)](https://modelcontextprotocol.io/)
 [![Status](https://img.shields.io/badge/Status-Alpha-red)]()
 
@@ -110,16 +111,16 @@ The server is a **pure orchestrator** — it never executes user-supplied code.
 
 ## Project Status
 
-Hensu is in **Alpha**. The core architecture is stable and the engine is feature-complete. Current focus is on
-comprehensive integration testing and persistence layer hardening.
+Hensu is in **Alpha**. The core architecture is stable and the engine is feature-complete, with current efforts focused
+on performance benchmarks and scaling documentation.
 
 - [x] Core engine implementation (state machine, rubric evaluation, consensus, sub-workflows)
 - [x] Type-safe Kotlin DSL with compile-time validation
 - [x] CLI for workflow lifecycle management
 - [x] Server prototype with MCP Split-Pipe transport
 - [x] Integration test suite (standard nodes, parallel, planning, review, rubric, pause/resume)
-- [ ] Persistence layer (database integration)
-- [ ] Production security hardening
+- [x] Persistence layer (PostgreSQL + Flyway, checkpoint hook)
+- [x] Production security hardening (JWT, CORS, TLS, input validation)
 - [ ] Performance benchmarks and scaling documentation
 
 ---
@@ -135,9 +136,9 @@ java -jar hensu-server/build/quarkus-app/quarkus-run.jar
 **Resources:**
 
 - **[Hensu Monorepo](https://github.com/hensu-project/hensu)** — Engine, Server, DSL, CLI, and Serialization
-- **[DSL Reference](https://github.com/hensu-project/hensu/blob/master/docs/dsl-reference.md)** — Complete guide to
+- **[DSL Reference](https://github.com/hensu-project/hensu/blob/main/docs/dsl-reference.md)** — Complete guide to
   building agentic workflows
-- **[Architecture](https://github.com/hensu-project/hensu/blob/master/docs/unified-architecture.md)** — Design
+- **[Architecture](https://github.com/hensu-project/hensu/blob/main/docs/unified-architecture.md)** — Design
   decisions, module structure, execution model, and security architecture
 
 ---
