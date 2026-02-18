@@ -1,6 +1,6 @@
 <div align="center">
 
-# Hensu
+# Hensu™
 
 ### The orchestration engine for declarative AI workflows.
 
@@ -9,7 +9,7 @@
 [![CI](https://github.com/hensu-project/hensu/actions/workflows/ci.yml/badge.svg)](https://github.com/hensu-project/hensu/actions/workflows/ci.yml)
 [![Native Image](https://github.com/hensu-project/hensu/actions/workflows/native.yml/badge.svg)](https://github.com/hensu-project/hensu/actions/workflows/native.yml)
 [![Protocol](https://img.shields.io/badge/Protocol-MCP-green)](https://modelcontextprotocol.io/)
-[![Status](https://img.shields.io/badge/Status-Alpha-red)]()
+[![Status](https://img.shields.io/badge/status-pre--beta-blueviolet)]()
 
 **Define. Build. Run.**<br>
 Self-hosted. Developer-friendly. Zero lock-in.
@@ -106,12 +106,14 @@ The server is a **pure orchestrator** — it never executes user-supplied code.
   required.
 - **Native Binary.** GraalVM native image eliminates classpath scanning, reflection, and dynamic class loading attack
   surfaces.
+- **API Boundary.** JWT authentication, input validation (safe IDs, control-character filtering), and unified error
+  handling prevent injection and unauthorized access.
 
 ---
 
 ## Project Status
 
-Hensu is in **Alpha**. The core architecture is stable and the engine is feature-complete, with current efforts focused
+Hensu is in **Pre-Beta**. The core architecture is stable and the engine is feature-complete, with current efforts focused
 on performance benchmarks and scaling documentation.
 
 - [x] Core engine implementation (state machine, rubric evaluation, consensus, sub-workflows)
@@ -122,6 +124,7 @@ on performance benchmarks and scaling documentation.
 - [x] Persistence layer (PostgreSQL + Flyway, checkpoint hook)
 - [x] Production security hardening (JWT, CORS, TLS, input validation)
 - [ ] Performance benchmarks and scaling documentation
+- [ ] Stable Release
 
 ---
 
