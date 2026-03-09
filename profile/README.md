@@ -14,29 +14,21 @@
 
 ---
 
-Shipping multi-agent systems today means weeks of SDK boilerplate, Python GIL limits, or AI logic tangled
-deep inside application code — before you know if the workflow is even useful. Then you rewrite everything.
+Most AI workflow frameworks treat graph construction as a library concern – something wired directly
+into application code. You discover whether the workflow is actually useful only after weeks of
+integration work. By then the AI logic and the application are entangled, and neither can change
+cleanly without the other.
 
-**Hensu** ends that cycle. Author a workflow in a type-safe Kotlin DSL. Validate the graph locally with
-zero-cost stub agents. Switch to real agents on the same engine. Push the same compiled artifact to the
-server. Integration is done — no rework, no coupling, no rewrite.
-
----
-
-## Why Hensu?
-
-| Alternative                           | The Cost                                                                                                                         | Hensu's Answer                                                                                                   |
-|:--------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------|
-| **Temporal / Camunda / Airflow**      | Weeks of worker setup, SDK boilerplate, and serialization contracts before a single line of business logic runs.                 | Install the CLI, run a stub workflow in minutes. Same artifact goes to production — no integration rework.       |
-| **LangGraph / CrewAI / AutoGen**      | Python GIL kills true concurrency. `asyncio` is cooperative, not parallel. AI logic couples tightly to application code.         | Java 25 virtual threads. Real parallel execution. Workflows are standalone artifacts — decoupled from your app.  |
-| **LangChain4J / Spring AI / Embabel** | Forces graph creation directly into your codebase. Weeks of integration to discover whether the workflow is even useful.         | DSL compiles to an independent artifact. Test the graph via CLI in minutes, without touching your core codebase. |
-| **Custom in-house orchestrators**     | Inevitably mix orchestration with tool execution, creating a remote-code-execution surface. Rewrites happen when AI logic grows. | Hard security boundary via MCP split-pipe. Orchestrators only orchestrate. Tools run where you control them.     |
+Hensu takes a different approach. Workflows are standalone compiled artifacts, defined in a
+type-safe Kotlin DSL and executed by a dedicated engine. Run a workflow locally with real agents
+during development. Push the same compiled artifact to the server. The engine is identical in both
+environments, so there is no integration gap between the two.
 
 ---
 
-## The DSL
+## DSL Example
 
-Two agents, parallel review branches, majority-vote consensus, self-correcting loop — in under 30 lines:
+Parallel review branches, majority-vote consensus, self-correcting loop:
 
 ```kotlin
 fun contentPipeline() = workflow("content-pipeline") {
@@ -70,51 +62,24 @@ fun contentPipeline() = workflow("content-pipeline") {
 
 ---
 
-## Architecture
+## Stack
 
-```
- Developer (local)                                              Hensu Runtime               External
-
- Develop:   +——————————+    +——————————+
-            │ Kotlin   │———>│  hensu   │   (stubs first → real agents; same hensu-core as the server)
-            │ DSL      │    │  run     │
-            +——————————+    +——————————+
-
- Deploy:    +——————————+    +——————————+    +——————————+    +——————————————————————+    +——————————————+
-            │  hensu   │    │   JSON   │    │  hensu   │    │  Hensu Server        │    │ LLMs (Claude │
-            │  build   │———>│   Def.   │———>│  push    │———>│  (GraalVM Native)    │<——>│ GPT, Gemini) │
-            +——————————+    +——————————+    +——————————+    │                      │    +——————————————+
-                                                            │  Core Engine         │    +——————————————+
-                                                            │  +— State Manager    │<——>│ MCP Tool     │
-                                                            │  +— Rubric Evaluator │    │ Servers      │
-                                                            │  +— Consensus Engine │    +——————————————+
-                                                            +——————————————————————+
-```
-
-**The stack:**
-
-| Module                                                                            | Role                                                                                              |
-|:----------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------|
-| **[hensu-dsl](https://github.com/hensu-project/hensu/tree/main/hensu-dsl)**       | Type-safe Kotlin DSL — compiles `.kt` workflow definitions into portable JSON artifacts           |
-| **[hensu-core](https://github.com/hensu-project/hensu/tree/main/hensu-core)**     | Zero-dependency Java execution engine — state transitions, rubric evaluation, agent orchestration |
-| **[hensu-server](https://github.com/hensu-project/hensu/tree/main/hensu-server)** | Multi-tenant GraalVM native server — MCP split-pipe transport for secure remote tool execution    |
-| **[hensu-cli](https://github.com/hensu-project/hensu/tree/main/hensu-cli)**       | Developer CLI — `run`, `build`, `push`, `pull`, `list`, `attach`; local daemon keeps the JVM warm |
+| Module                                                                                    | Role                                                                                              |
+|:------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------|
+| **[hensu-dsl](https://github.com/hensu-project/hensu/tree/main/hensu-dsl)**               | Type-safe Kotlin DSL – compiles `.kt` workflow definitions into portable JSON artifacts           |
+| **[hensu-core](https://github.com/hensu-project/hensu/tree/main/hensu-core)**             | Zero-dependency Java engine – state transitions, rubric evaluation, agent orchestration           |
+| **[hensu-server](https://github.com/hensu-project/hensu/tree/main/hensu-server)**         | Multi-tenant GraalVM native server – MCP split-pipe transport for secure remote tool execution    |
+| **[hensu-cli](https://github.com/hensu-project/hensu/tree/main/hensu-cli)**               | Developer CLI – `run`, `build`, `push`, `pull`, `list`, `attach`; local daemon keeps the JVM warm |
 
 ---
 
-## Security Model
-
-The server is a **pure orchestrator** — it never executes user-supplied code.
-
-- **No local execution.** No shell, no `eval`, no script runner. Side effects route through MCP to tenant clients — a hallucinating LLM cannot run code on the orchestrator.
-- **No inbound ports.** Tenant clients connect *outbound* via SSE. No firewall rules, no VPN.
-- **Tenant isolation.** Every execution runs inside a Java `ScopedValue` boundary — no data leaks between concurrent workflows.
-- **Native binary.** GraalVM native image eliminates classpath scanning, reflection, and dynamic class loading attack surfaces.
-- **API boundary.** JWT authentication, safe-identifier validation, control-character filtering, and LLM output sanitization at every entry point.
+The server is a pure orchestrator – it never executes user-supplied code. Tool calls route through
+MCP to tenant clients via an outbound SSE connection. No inbound ports, no firewall rules on the
+client side. The binary ships as a GraalVM native image.
 
 ---
 
-**[→ Monorepo](https://github.com/hensu-project/hensu)** · [DSL Reference](https://github.com/hensu-project/hensu/blob/main/docs/dsl-reference.md) · [Architecture](https://github.com/hensu-project/hensu/blob/main/docs/unified-architecture.md) · [Spring Reference Client](https://github.com/hensu-project/hensu/tree/main/integrations/spring-reference-client)
+[→ Monorepo](https://github.com/hensu-project/hensu) · [DSL Reference](https://github.com/hensu-project/hensu/blob/main/docs/dsl-reference.md) · [Architecture](https://github.com/hensu-project/hensu/blob/main/docs/unified-architecture.md) · [Spring Reference Client](https://github.com/hensu-project/hensu/tree/main/integrations/spring-reference-client)
 
 ---
 
