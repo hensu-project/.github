@@ -38,7 +38,7 @@ fun contentPipeline() = workflow("content-pipeline") {
     }
     state {
         input("topic",  VarType.STRING)
-        variable("draft", VarType.STRING)
+        variable("draft", VarType.STRING, "the full written article text")
     }
     graph {
         start at "write"
