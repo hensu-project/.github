@@ -1,14 +1,13 @@
 <div align="center">
 
-# Hensu™
+# Hensu
 
 ### Terraform for AI Agents.
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Java](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)](https://jdk.java.net/)
-[![CI](https://github.com/hensu-project/hensu/actions/workflows/ci.yml/badge.svg)](https://github.com/hensu-project/hensu/actions/workflows/ci.yml)
-[![Native Image](https://github.com/hensu-project/hensu/actions/workflows/native.yml/badge.svg)](https://github.com/hensu-project/hensu/actions/workflows/native.yml)
-[![Protocol](https://img.shields.io/badge/Protocol-MCP-green)](https://modelcontextprotocol.io/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-636366?style=flat-square&labelColor=21262d)](https://opensource.org/licenses/Apache-2.0)
+[![Java](https://img.shields.io/badge/Java-25-636366?style=flat-square&logo=openjdk&logoColor=white&labelColor=21262d)](https://jdk.java.net/)
+[![Protocol](https://img.shields.io/badge/Protocol-MCP-636366?style=flat-square&labelColor=21262d)](https://modelcontextprotocol.io/)
+[![Status](https://img.shields.io/badge/Status-Pre--Beta-FF9F0A?style=flat-square&labelColor=21262d)]()
 
 </div>
 
@@ -79,12 +78,13 @@ client side. The binary ships as a GraalVM native image.
 
 ---
 
-[→ Monorepo](https://github.com/hensu-project/hensu) · [DSL Reference](https://github.com/hensu-project/hensu/blob/main/docs/dsl-reference.md) · [Architecture](https://github.com/hensu-project/hensu/blob/main/docs/unified-architecture.md) · [Spring Reference Client](https://github.com/hensu-project/hensu/tree/main/integrations/spring-reference-client)
-
----
-
 <div align="center">
 
-Java 25 · Kotlin · Quarkus · GraalVM Native Image · MCP Protocol
+[Monorepo](https://github.com/hensu-project/hensu) · [DSL Reference](https://github.com/hensu-project/hensu/blob/main/docs/dsl-reference.md) · [Architecture](https://github.com/hensu-project/hensu/blob/main/docs/unified-architecture.md) · [Spring Reference Client](https://github.com/hensu-project/hensu/tree/main/integrations/spring-reference-client)
+
+Java 25 · Kotlin · Quarkus · GraalVM Native Image · MCP
+
+Hensu™ and the axolotl logo are trademarks of Aleksandr Suvorov.<br>
+Copyright 2025–2026 Aleksandr Suvorov. All rights reserved.
 
 </div>
