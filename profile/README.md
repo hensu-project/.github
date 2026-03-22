@@ -32,8 +32,8 @@ Parallel review branches, majority-vote consensus, self-correcting loop:
 ```kotlin
 fun contentPipeline() = workflow("content-pipeline") {
     agents {
-        agent("writer")   { role = "Content Writer";   model = Models.CLAUDE_SONNET_4_5 }
-        agent("reviewer") { role = "Content Reviewer"; model = Models.GPT_4O }
+        agent("writer")   { role = "Content Writer";   model = Models.CLAUDE_HAIKU_4_5 }
+        agent("reviewer") { role = "Content Reviewer"; model = Models.GEMINI_3_1_PRO }
     }
     state {
         input("topic",  VarType.STRING)
@@ -82,9 +82,11 @@ client side. The binary ships as a GraalVM native image.
 
 [Monorepo](https://github.com/hensu-project/hensu) · [DSL Reference](https://github.com/hensu-project/hensu/blob/main/docs/dsl-reference.md) · [Architecture](https://github.com/hensu-project/hensu/blob/main/docs/unified-architecture.md) · [Spring Reference Client](https://github.com/hensu-project/hensu/tree/main/integrations/spring-reference-client)
 
+---
+
 Java 25 · Kotlin · Quarkus · GraalVM Native Image · MCP
 
-Hensu™ and the axolotl logo are trademarks of Aleksandr Suvorov.<br>
-Copyright 2025–2026 Aleksandr Suvorov. All rights reserved.
+<sub>Hensu™ and the axolotl logo are trademarks of Aleksandr Suvorov.<br>
+Copyright 2025–2026 Aleksandr Suvorov. All rights reserved.</sub>
 
 </div>
