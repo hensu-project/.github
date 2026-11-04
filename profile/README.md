@@ -73,7 +73,7 @@ fun contentPipeline() = workflow("content-pipeline") {
 | **[hensu-dsl](https://github.com/hensu-project/hensu/tree/main/hensu-dsl)**               | Type-safe Kotlin DSL – compiles `.kt` workflow definitions into portable JSON artifacts                     |
 | **[hensu-core](https://github.com/hensu-project/hensu/tree/main/hensu-core)**             | Zero-dependency Java engine – state transitions, rubric evaluation, agent orchestration                     |
 | **[hensu-cli](https://github.com/hensu-project/hensu/tree/main/hensu-cli)**               | Local runtime – `run`, `build`, `push`, `attach`; runs catalog commands under an OS sandbox; warm daemon    |
-| **[hensu-server](https://github.com/hensu-project/hensu/tree/main/hensu-server)**         | Multi-tenant GraalVM native server – MCP split-pipe routes every tool call to tenant clients                |
+| **[hensu-server](https://github.com/hensu-project/hensu/tree/main/hensu-server)**         | Multi-tenant GraalVM native server – tenant relays pull every tool call from any node                       |
 | **[hensu-mcp](https://github.com/hensu-project/hensu/tree/main/hensu-mcp)**               | Runtime-agnostic MCP protocol layer – JSON-RPC messages, schema conversion, result rendering                |
 
 ---
@@ -81,8 +81,8 @@ fun contentPipeline() = workflow("content-pipeline") {
 ## Security
 
 - **The server executes nothing.** It is a pure orchestrator: no shell, no `eval`, no script
-  runner. Tool calls travel over an outbound SSE split-pipe to tenant clients, so there are no
-  inbound ports and no firewall rules on the client side. It ships as a GraalVM native image.
+  runner. The tenant's relay pulls tool calls from the server, so there are no inbound ports and no
+  firewall rules on the client side. It ships as a GraalVM native image.
 - **The CLI executes what you granted.** `commands.yaml` is the allowlist: agents pass a command id
   and parameter values, never command text. Every command launches under bubblewrap (Linux) or
   Seatbelt (macOS), closed by default, and a host with no working sandbox refuses the command rather
